@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lender-Wise status</title>
+<meta name="description" content="Live service status for Lender-Wise (lender-wise.com): application, sign-in, public CDR endpoints. Independent of the Lender-Wise hosting stack.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='44' fill='%2310B981'/%3E%3C/svg%3E">
+<style>
+  :root { --bg:#F6F7F9; --fg:#232323; --mute:#5B667A; --line:#D7DCE5; --card:#fff; --ok:#15803d; --okbg:#dcfce7; --warn:#b45309; --warnbg:#fef3c7; --bad:#b91c1c; --badbg:#fee2e2; --blue:#004AAD; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0f172a; --fg:#e5e7eb; --mute:#94a3b8; --line:#1f2937; --card:#111827; --okbg:#052e16; --ok:#4ade80; --warnbg:#3b2a07; --warn:#fbbf24; --badbg:#3b0a0a; --bad:#f87171; --blue:#93c5fd; } }
+  * { box-sizing:border-box } body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif }
+  main { max-width:860px; margin:0 auto; padding:32px 20px 64px }
+  header { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:20px }
+  h1 { font-size:22px; margin:0 } h2 { font-size:16px; margin:28px 0 10px; color:var(--mute); text-transform:uppercase; letter-spacing:.04em }
+  .overall { border:1px solid var(--line); border-radius:12px; padding:16px 18px; background:var(--card); display:flex; align-items:center; gap:12px; font-weight:600 }
+  .dot { width:12px; height:12px; border-radius:50%; background:var(--mute); flex:none }
+  .ok .dot { background:var(--ok) } .bad .dot { background:var(--bad) } .warn .dot { background:var(--warn) }
+  .ok { background:var(--okbg) } .bad { background:var(--badbg) } .warn { background:var(--warnbg) }
+  table { width:100%; border-collapse:collapse; background:var(--card); border:1px solid var(--line); border-radius:12px; overflow:hidden }
+  th, td { text-align:left; padding:10px 14px; border-top:1px solid var(--line); vertical-align:top } th { border-top:0; color:var(--mute); font-weight:600; font-size:13px }
+  .pill { display:inline-block; padding:2px 10px; border-radius:999px; font-size:13px; font-weight:600 }
+  .pill.ok { color:var(--ok) } .pill.bad { color:var(--bad) } .pill.warn { color:var(--warn) }
+  .muted { color:var(--mute); font-size:14px } a { color:var(--blue) }
+  .inc { border:1px solid var(--line); border-radius:12px; background:var(--card); padding:14px 16px; margin:10px 0 }
+  .inc h3 { margin:0 0 4px; font-size:15px } .inc .when { font-size:13px; color:var(--mute) }
+  footer { margin-top:36px; font-size:13px; color:var(--mute) }
+  code { font-size:13px }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Lender-Wise — service status</h1>
+    <span class="muted" id="updated">checking…</span>
+  </header>
+
+  <div class="overall" id="overall"><span class="dot"></span><span id="overall-text">Checking the service…</span></div>
+
+  <h2>Components</h2>
+  <table>
+    <thead><tr><th>Component</th><th>Status</th><th>Detail</th></tr></thead>
+    <tbody id="components">
+      <tr><td>Application &amp; sign-in (lender-wise.com)</td><td><span class="pill" id="c-app">…</span></td><td class="muted" id="d-app">live check of the health endpoint</td></tr>
+      <tr><td>Database</td><td><span class="pill" id="c-db">…</span></td><td class="muted" id="d-db">reported by the health endpoint</td></tr>
+      <tr><td>Public CDR product endpoints</td><td><span class="pill" id="c-cdr">…</span></td><td class="muted" id="d-cdr">monitored every 5 minutes from 3 regions (Azure availability tests) — not shown live here</td></tr>
+      <tr><td>Email notifications</td><td><span class="pill warn">monitored</span></td><td class="muted">reported by clients / the operations channel</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Incidents &amp; maintenance</h2>
+  <div id="incidents"><p class="muted">Loading…</p></div>
+
+  <h2>Get help</h2>
+  <p>Email <a href="mailto:support@lender-wise.com">support@lender-wise.com</a> — tell us which screen, what you expected, what happened, and the time (AEST). Or use the in-app Help panel and the <a href="https://lender-wise.com/contact">Contact &amp; reporting</a> form (you get a reference number). Security incidents: use the Contact form's security-incident option.</p>
+
+  <footer>
+    This page is hosted separately from the Lender-Wise application (GitHub Pages) so it still answers when the service doesn't. Live check calls <code>https://lender-wise.com/api/health</code> from your browser every 60 s; incident notes are maintained by the Lender-Wise team. Times are shown in your local time zone.
+  </footer>
+</main>
+<script>
+(function () {
+  var HEALTH = "https://lender-wise.com/api/health";
+  function pill(id, cls, text) { var el = document.getElementById(id); el.className = "pill " + cls; el.textContent = text; }
+  function overall(cls, text) { var el = document.getElementById("overall"); el.className = "overall " + cls; document.getElementById("overall-text").textContent = text; }
+  function stamp(note) { document.getElementById("updated").textContent = "checked " + new Date().toLocaleTimeString() + (note ? " · " + note : ""); }
+  function check() {
+    var ctrl = new AbortController(); var t = setTimeout(function () { ctrl.abort(); }, 12000);
+    fetch(HEALTH, { cache: "no-store", signal: ctrl.signal }).then(function (r) {
+      clearTimeout(t);
+      return r.json().then(function (j) { return { status: r.status, body: j }; });
+    }).then(function (res) {
+      var j = res.body || {}; var db = (j.checks || {}).db; var cfg = (j.checks || {}).config;
+      if (res.status === 200 && j.status === "ok") {
+        pill("c-app", "ok", "operational"); document.getElementById("d-app").textContent = "health OK · build " + (j.build || "?");
+        pill("c-db", "ok", "operational"); document.getElementById("d-db").textContent = "database answering";
+        overall("ok", "All systems operational");
+      } else {
+        pill("c-app", res.status === 503 ? "warn" : "bad", res.status === 503 ? "degraded" : "error");
+        document.getElementById("d-app").textContent = "health reported " + (j.status || res.status) + (j.missingConfig ? " (config)" : "");
+        pill("c-db", db === "ok" ? "ok" : "bad", db === "ok" ? "operational" : "not answering");
+        document.getElementById("d-db").textContent = db === "ok" ? "database answering" : "the application cannot reach its database";
+        overall("warn", "Degraded — the team has been alerted automatically");
+      }
+      pill("c-cdr", "ok", "monitored"); document.getElementById("d-cdr").textContent = "monitored every 5 minutes from 3 regions (Azure availability tests); alerts page the operations team";
+      stamp("");
+    }).catch(function (e) {
+      clearTimeout(t);
+      pill("c-app", "bad", "unreachable"); document.getElementById("d-app").textContent = "the health endpoint did not answer from your browser (" + (e && e.name === "AbortError" ? "timeout" : "network/CORS") + ")";
+      pill("c-db", "warn", "unknown"); document.getElementById("d-db").textContent = "cannot tell while the application is unreachable";
+      pill("c-cdr", "warn", "unknown");
+      overall("bad", "The application did not answer this check — if this persists a few minutes, we are on it (alerts fire automatically)");
+      stamp("last check failed");
+    });
+  }
+  function incidents() {
+    fetch("incidents.json?_=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (list) {
+      var root = document.getElementById("incidents"); root.innerHTML = "";
+      if (!list.length) { root.innerHTML = "<p class='muted'>No incidents recorded.</p>"; return; }
+      list.slice().reverse().forEach(function (i) {
+        var d = document.createElement("div"); d.className = "inc";
+        var when = new Date(i.start).toLocaleString() + (i.end ? " → " + new Date(i.end).toLocaleString() : " → ongoing");
+        d.innerHTML = "<h3>" + i.title + " <span class='pill " + (i.end ? "ok" : "bad") + "'>" + (i.end ? "resolved" : "ongoing") + "</span></h3><div class='when'>" + when + "</div><p>" + i.summary + "</p>";
+        root.appendChild(d);
+      });
+    }).catch(function () { document.getElementById("incidents").innerHTML = "<p class='muted'>Incident list unavailable.</p>"; });
+  }
+  check(); incidents(); setInterval(check, 60000);
+})();
+</script>
+</body>
+</html>

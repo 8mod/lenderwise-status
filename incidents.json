@@ -1,0 +1,8 @@
+[
+  {
+    "start": "2026-08-22T21:30:00Z",
+    "end": "2026-08-22T22:32:00Z",
+    "title": "Planned cutover: lender-wise.com moved to the production platform",
+    "summary": "During the move of lender-wise.com and www.lender-wise.com to the production platform, the public site was unavailable for about an hour (07:30–08:32 AEST, Sunday). demo.lender-wise.com and uat.lender-wise.com were not affected. Cause: the hosting platform requires a hostname to be released from the old front door before it can be validated on the new one, so the site could not be served during certificate issuance. No data was affected."
+  }
+]
